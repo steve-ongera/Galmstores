@@ -121,19 +121,23 @@ class ProductListSerializer(serializers.ModelSerializer):
         return None
 
 
+# serializers.py — update these fields in ProductDetailSerializer
+
 class ProductDetailSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
     variants = ProductVariantSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     brand = BrandSerializer(read_only=True)
-    reviews = ProductReviewSerializer(many=True, read_only=True, source='reviews')
+    reviews = ProductReviewSerializer(many=True, read_only=True)
     discount_percentage = serializers.ReadOnlyField()
     is_in_stock = serializers.ReadOnlyField()
-    skincare_details = SkincareDetailSerializer(read_only=True)
-    hair_details = HairDetailSerializer(read_only=True)
-    earring_details = EarringDetailSerializer(read_only=True)
-    stickon_details = StickonDetailSerializer(read_only=True)
-    handbag_details = HandbagDetailSerializer(read_only=True)
+
+    # Add required=False to all optional related fields
+    skincare_details = SkincareDetailSerializer(read_only=True, required=False)
+    hair_details = HairDetailSerializer(read_only=True, required=False)
+    earring_details = EarringDetailSerializer(read_only=True, required=False)
+    stickon_details = StickonDetailSerializer(read_only=True, required=False)
+    handbag_details = HandbagDetailSerializer(read_only=True, required=False)
 
     class Meta:
         model = Product
