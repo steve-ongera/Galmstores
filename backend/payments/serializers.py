@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..products.models import Payment, MpesaTransaction, PayPalTransaction
+from .models import Payment, MpesaTransaction, PayPalTransaction
 
 
 class MpesaSTKPushSerializer(serializers.Serializer):
