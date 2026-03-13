@@ -1,5 +1,7 @@
 // NotFoundPage.jsx
-export function NotFoundPage() {
+import { Link } from 'react-router-dom'
+
+export default function NotFoundPage() {
   return (
     <div className="container" style={{ textAlign: 'center', padding: 'var(--space-3xl)' }}>
       <div style={{ fontSize: '6rem', marginBottom: 'var(--space-md)' }}>🌸</div>

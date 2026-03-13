@@ -1,11 +1,16 @@
 // RegisterPage.jsx
-export function RegisterPage() {
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { useToast } from '../components/common/Toast'
+
+export default function RegisterPage() {
   const [form, setForm] = useState({ username: '', email: '', first_name: '', last_name: '', password: '', password2: '' })
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
- 
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (form.password !== form.password2) return toast.error('Passwords do not match')
@@ -16,13 +21,13 @@ export function RegisterPage() {
     } catch (err) { toast.error('Registration failed. Try again.') }
     finally { setLoading(false) }
   }
- 
+
   const FIELDS = [
     ['first_name', 'First Name', 'text', 'bi-person'], ['last_name', 'Last Name', 'text', 'bi-person'],
     ['username', 'Username', 'text', 'bi-at'], ['email', 'Email', 'email', 'bi-envelope'],
     ['password', 'Password', 'password', 'bi-lock'], ['password2', 'Confirm Password', 'password', 'bi-lock-fill'],
   ]
- 
+
   return (
     <div className="auth-page">
       <div className="auth-card">
@@ -52,4 +57,3 @@ export function RegisterPage() {
     </div>
   )
 }
- 

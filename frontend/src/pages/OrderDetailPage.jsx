@@ -1,10 +1,17 @@
 // OrderDetailPage.jsx
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-export function OrderDetailPage() {
+import { ordersAPI } from '../services/api'
+import { Breadcrumb } from '../components/common/Toast'
+
+export default function OrderDetailPage() {
   const { id } = useParams()
   const [order, setOrder] = useState(null)
+
   useEffect(() => { ordersAPI.detail(id).then(setOrder) }, [id])
+
   if (!order) return <div className="container section-sm"><p>Loading...</p></div>
+
   return (
     <div className="container section-sm">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Orders', href: '/orders' }, { label: order.order_number }]} />
@@ -44,4 +51,3 @@ export function OrderDetailPage() {
     </div>
   )
 }
- 

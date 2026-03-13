@@ -1,9 +1,12 @@
 // WishlistPage.jsx
+import { Link } from 'react-router-dom'
 import { useWishlist } from '../context/WishlistContext'
 import ProductCard from '../components/product/ProductCard'
 import { EmptyState, Breadcrumb } from '../components/common/Toast'
-export function WishlistPage() {
+
+export default function WishlistPage() {
   const { wishlist } = useWishlist()
+
   return (
     <div className="container section-sm">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'My Wishlist' }]} />
@@ -18,4 +21,3 @@ export function WishlistPage() {
     </div>
   )
 }
- 

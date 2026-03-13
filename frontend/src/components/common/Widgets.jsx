@@ -1,5 +1,7 @@
-// CategoryPills.jsx
-import { Link, useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+// ─── Category Pills ───────────────────────────────────────────────────────────
 
 const CATS = [
   { label: 'All', slug: '', icon: 'bi-grid' },
@@ -27,9 +29,7 @@ export function CategoryPills({ activeSlug = '' }) {
   )
 }
 
-// FlashSaleTimer.jsx
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+// ─── Flash Sale Timer ─────────────────────────────────────────────────────────
 
 export function FlashSaleTimer({ endTime, title = 'Flash Sale', discount = 50 }) {
   const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 })
@@ -104,11 +104,11 @@ export function PromoStrip() {
   )
 }
 
-// Newsletter.jsx
-import { useState as useNewsState } from 'react'
+// ─── Newsletter ───────────────────────────────────────────────────────────────
+
 export function Newsletter() {
-  const [email, setEmail] = useNewsState('')
-  const [sent, setSent] = useNewsState(false)
+  const [email, setEmail] = useState('')
+  const [sent, setSent] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()

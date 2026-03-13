@@ -1,7 +1,9 @@
 // AccountPage.jsx
 
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-export function AccountPage() {
+
+export default function AccountPage() {
   const { user } = useAuth()
   return (
     <div className="container section-sm">
@@ -42,4 +44,3 @@ export function AccountPage() {
     </div>
   )
 }
- 

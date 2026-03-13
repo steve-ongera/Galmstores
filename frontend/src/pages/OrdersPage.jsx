@@ -1,11 +1,17 @@
 // OrdersPage.jsx
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { ordersAPI } from '../services/api'
-export function OrdersPage() {
+import { Breadcrumb, EmptyState } from '../components/common/Toast'
+
+export default function OrdersPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+
   useEffect(() => { ordersAPI.list().then(d => setOrders(d.results || d)).finally(() => setLoading(false)) }, [])
+
   const STATUS_COLORS = { pending: 'badge-rose', confirmed: 'badge-gold', processing: 'badge-gold', shipped: 'badge-success', delivered: 'badge-success', cancelled: 'badge-error' }
+
   return (
     <div className="container section-sm">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'My Orders' }]} />
@@ -30,4 +36,3 @@ export function OrdersPage() {
     </div>
   )
 }
- 

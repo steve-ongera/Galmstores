@@ -1,10 +1,38 @@
-// ─── Toast ─────────────────────────────────────────────────────────────────────
-import { createContext, useContext, useState, useCallback } from 'react'
+// Toast.jsx
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 
 const ToastContext = createContext(null)
 
-export function Toast() {
-  const { toasts, remove } = useToastInternal()
+// ─── useToast hook ─────────────────────────────────────────────────────────────
+export const useToast = () => {
+  const ctx = useContext(ToastContext)
+  return {
+    success: (msg) => ctx?.add(msg, 'success'),
+    error:   (msg) => ctx?.add(msg, 'error'),
+    info:    (msg) => ctx?.add(msg, 'info'),
+  }
+}
+
+// ─── ToastProvider ─────────────────────────────────────────────────────────────
+export function ToastProvider({ children }) {
+  const [toasts, setToasts] = useState([])
+  const remove = useCallback(id => setToasts(t => t.filter(x => x.id !== id)), [])
+  const add = useCallback((message, type = 'info') => {
+    const id = Date.now()
+    setToasts(t => [...t, { id, message, type }])
+    setTimeout(() => remove(id), 3500)
+  }, [remove])
+  return (
+    <ToastContext.Provider value={{ toasts, add, remove }}>
+      {children}
+      <ToastDisplay toasts={toasts} remove={remove} />
+    </ToastContext.Provider>
+  )
+}
+
+// ─── Internal display component (always inside provider) ───────────────────────
+function ToastDisplay({ toasts, remove }) {
   return (
     <div className="toast-container">
       {toasts.map(t => (
@@ -17,29 +45,8 @@ export function Toast() {
   )
 }
 
-let _addToast = null
-const useToastInternal = () => useContext(ToastContext)
-export const useToast = () => {
-  const ctx = useContext(ToastContext)
-  return {
-    success: (msg) => ctx?.add(msg, 'success'),
-    error:   (msg) => ctx?.add(msg, 'error'),
-    info:    (msg) => ctx?.add(msg, 'info'),
-  }
-}
-
-export function ToastProvider({ children }) {
-  const [toasts, setToasts] = useState([])
-  const remove = useCallback(id => setToasts(t => t.filter(x => x.id !== id)), [])
-  const add = useCallback((message, type = 'info') => {
-    const id = Date.now()
-    setToasts(t => [...t, { id, message, type }])
-    setTimeout(() => remove(id), 3500)
-  }, [remove])
-  return <ToastContext.Provider value={{ toasts, add, remove }}>{children}</ToastContext.Provider>
-}
-
-// Make Toast work — wrap app with ToastProvider in main
+// ─── Toast export (no longer needs context — ToastProvider handles rendering) ──
+export function Toast() { return null }
 export default Toast
 
 // ─── Skeleton ──────────────────────────────────────────────────────────────────
@@ -94,29 +101,20 @@ export function Stars({ rating, size = '0.9rem' }) {
   return (
     <div className="stars">
       {[1,2,3,4,5].map(i => (
-        <i
-          key={i}
-          className={`bi ${i <= Math.round(rating) ? 'bi-star-fill star' : 'bi-star star empty'}`}
-          style={{ fontSize: size }}
-        ></i>
+        <i key={i} className={`bi ${i <= Math.round(rating) ? 'bi-star-fill star' : 'bi-star star empty'}`} style={{ fontSize: size }}></i>
       ))}
     </div>
   )
 }
 
 // ─── Breadcrumb ────────────────────────────────────────────────────────────────
-import { Link } from 'react-router-dom'
 export function Breadcrumb({ items }) {
   return (
     <nav className="breadcrumb">
       {items.map((item, i) => (
         <span key={i} className="flex" style={{ alignItems: 'center', gap: 4 }}>
           {i > 0 && <i className="bi bi-chevron-right breadcrumb__sep" style={{ fontSize: '0.7rem' }}></i>}
-          {item.href ? (
-            <Link to={item.href}>{item.label}</Link>
-          ) : (
-            <span className="breadcrumb__current">{item.label}</span>
-          )}
+          {item.href ? <Link to={item.href}>{item.label}</Link> : <span className="breadcrumb__current">{item.label}</span>}
         </span>
       ))}
     </nav>
@@ -127,9 +125,7 @@ export function Breadcrumb({ items }) {
 export function EmptyState({ icon = 'bi-inbox', title, description, action }) {
   return (
     <div className="empty-state">
-      <div className="empty-state__icon">
-        <i className={`bi ${icon}`}></i>
-      </div>
+      <div className="empty-state__icon"><i className={`bi ${icon}`}></i></div>
       <h3>{title}</h3>
       {description && <p>{description}</p>}
       {action}
@@ -138,9 +134,8 @@ export function EmptyState({ icon = 'bi-inbox', title, description, action }) {
 }
 
 // ─── Scroll To Top ─────────────────────────────────────────────────────────────
-import { useState as useScrollState, useEffect } from 'react'
 export function ScrollToTop() {
-  const [visible, setVisible] = useScrollState(false)
+  const [visible, setVisible] = useState(false)
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 400)
     window.addEventListener('scroll', onScroll)
@@ -161,13 +156,7 @@ export function ScrollToTop() {
 export function Spinner({ size = 32 }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-xl)' }}>
-      <div style={{
-        width: size, height: size,
-        border: '3px solid var(--clr-rose-pale)',
-        borderTopColor: 'var(--clr-rose)',
-        borderRadius: '50%',
-        animation: 'spin 0.7s linear infinite'
-      }}></div>
+      <div style={{ width: size, height: size, border: '3px solid var(--clr-rose-pale)', borderTopColor: 'var(--clr-rose)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }}></div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
@@ -178,11 +167,7 @@ export function SectionHeader({ title, linkTo, linkLabel = 'View All' }) {
   return (
     <div className="section-header">
       <h2>{title}</h2>
-      {linkTo && (
-        <Link to={linkTo} className="section-link">
-          {linkLabel} <i className="bi bi-arrow-right"></i>
-        </Link>
-      )}
+      {linkTo && <Link to={linkTo} className="section-link">{linkLabel} <i className="bi bi-arrow-right"></i></Link>}
     </div>
   )
 }

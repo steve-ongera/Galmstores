@@ -1,6 +1,7 @@
 // CheckoutSuccessPage.jsx
 import { Link, useLocation } from 'react-router-dom'
-export function CheckoutSuccessPage() {
+
+export default function CheckoutSuccessPage() {
   const { state } = useLocation()
   return (
     <div className="container section-sm" style={{ textAlign: 'center', paddingTop: 'var(--space-3xl)' }}>
