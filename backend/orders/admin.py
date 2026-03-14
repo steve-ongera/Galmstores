@@ -1,172 +1,91 @@
-# products/admin.py
+# orders/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import (
-    Category, SubCategory, Brand, Product, ProductImage,
-    ProductVariant, SkincareProduct, HairProduct, EarringProduct,
-    StickonProduct, HandbagProduct, ProductReview, Wishlist,
-    WishlistItem, Banner, FlashSale,
-)
+from .models import Address, Cart, CartItem, Order, OrderItem, Coupon
 
 
-# ─── CATEGORIES ────────────────────────────────────────────────────────────────
+# ─── ADDRESS ───────────────────────────────────────────────────────────────────
 
-class SubCategoryInline(admin.TabularInline):
-    model = SubCategory
-    extra = 1
-    fields = ('name', 'slug', 'is_active')
-    prepopulated_fields = {'slug': ('name',)}
-
-
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category_type', 'is_active', 'created_at')
-    list_filter = ('category_type', 'is_active')
-    search_fields = ('name',)
-    prepopulated_fields = {'slug': ('name',)}
-    inlines = [SubCategoryInline]
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'user', 'city', 'country', 'is_default', 'created_at')
+    list_filter = ('country', 'is_default')
+    search_fields = ('full_name', 'user__username', 'city', 'phone')
 
 
-@admin.register(SubCategory)
-class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'is_active')
-    list_filter = ('category', 'is_active')
-    search_fields = ('name',)
-    prepopulated_fields = {'slug': ('name',)}
+# ─── CART ──────────────────────────────────────────────────────────────────────
 
-
-# ─── BRAND ─────────────────────────────────────────────────────────────────────
-
-@admin.register(Brand)
-class BrandAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_active', 'created_at')
-    list_filter = ('is_active',)
-    search_fields = ('name',)
-    prepopulated_fields = {'slug': ('name',)}
-
-
-# ─── PRODUCT ───────────────────────────────────────────────────────────────────
-
-class ProductImageInline(admin.TabularInline):
-    model = ProductImage
-    extra = 1
-    fields = ('image', 'alt_text', 'is_primary', 'order')
-
-
-class ProductVariantInline(admin.TabularInline):
-    model = ProductVariant
-    extra = 1
-    fields = ('name', 'value', 'price_modifier', 'stock', 'sku')
-
-
-class SkincareProductInline(admin.StackedInline):
-    model = SkincareProduct
+class CartItemInline(admin.TabularInline):
+    model = CartItem
     extra = 0
+    readonly_fields = ('unit_price', 'subtotal', 'added_at')
+
+
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'item_count', 'total', 'created_at')
+    search_fields = ('user__username', 'session_key')
+    readonly_fields = ('id', 'total', 'item_count', 'created_at', 'updated_at')
+    inlines = [CartItemInline]
+
+
+# ─── ORDER ─────────────────────────────────────────────────────────────────────
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ('product_name', 'variant_name', 'unit_price', 'subtotal', 'image_url')
     can_delete = False
 
 
-class HairProductInline(admin.StackedInline):
-    model = HairProduct
-    extra = 0
-    can_delete = False
-
-
-class EarringProductInline(admin.StackedInline):
-    model = EarringProduct
-    extra = 0
-    can_delete = False
-
-
-class StickonProductInline(admin.StackedInline):
-    model = StickonProduct
-    extra = 0
-    can_delete = False
-
-
-class HandbagProductInline(admin.StackedInline):
-    model = HandbagProduct
-    extra = 0
-    can_delete = False
-
-
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'price', 'stock', 'is_active', 'is_featured',
-                    'is_bestseller', 'average_rating', 'total_sold', 'created_at')
-    list_filter = ('category', 'is_active', 'is_featured', 'is_bestseller', 'is_new_arrival')
-    search_fields = ('name', 'sku', 'slug')
-    prepopulated_fields = {'slug': ('name',)}
-    readonly_fields = ('id', 'sku', 'average_rating', 'total_reviews', 'total_sold', 'created_at', 'updated_at')
-    list_editable = ('is_active', 'is_featured', 'price', 'stock')
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('order_number', 'user', 'colored_status', 'payment_status',
+                    'total', 'tracking_number', 'created_at')
+    list_filter = ('status', 'payment_status', 'created_at')
+    search_fields = ('order_number', 'user__username', 'tracking_number', 'coupon_code')
+    readonly_fields = ('id', 'order_number', 'created_at', 'updated_at')
     ordering = ('-created_at',)
-    inlines = [
-        ProductImageInline,
-        ProductVariantInline,
-        SkincareProductInline,
-        HairProductInline,
-        EarringProductInline,
-        StickonProductInline,
-        HandbagProductInline,
-    ]
+    inlines = [OrderItemInline]
     fieldsets = (
-        ('Core Info', {
-            'fields': ('id', 'name', 'slug', 'sku', 'category', 'subcategory', 'brand',
-                       'description', 'short_description')
+        ('Order Info', {
+            'fields': ('id', 'order_number', 'user', 'shipping_address', 'notes')
         }),
-        ('Pricing & Stock', {
-            'fields': ('price', 'compare_at_price', 'cost_price', 'stock', 'weight')
+        ('Status', {
+            'fields': ('status', 'payment_status', 'tracking_number')
         }),
-        ('Flags', {
-            'fields': ('is_active', 'is_featured', 'is_bestseller', 'is_new_arrival')
+        ('Financials', {
+            'fields': ('subtotal', 'shipping_cost', 'discount_amount', 'total', 'coupon_code')
         }),
-        ('SEO', {
-            'fields': ('meta_title', 'meta_description'),
-            'classes': ('collapse',)
-        }),
-        ('Stats', {
-            'fields': ('average_rating', 'total_reviews', 'total_sold'),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
 
-
-# ─── REVIEWS ───────────────────────────────────────────────────────────────────
-
-@admin.register(ProductReview)
-class ProductReviewAdmin(admin.ModelAdmin):
-    list_display = ('product', 'user', 'rating', 'title', 'is_verified_purchase', 'is_approved', 'created_at')
-    list_filter = ('rating', 'is_verified_purchase', 'is_approved')
-    search_fields = ('product__name', 'user__username', 'title')
-    list_editable = ('is_approved',)
-    readonly_fields = ('helpful_count', 'created_at', 'updated_at')
-
-
-# ─── WISHLIST ──────────────────────────────────────────────────────────────────
-
-class WishlistItemInline(admin.TabularInline):
-    model = WishlistItem
-    extra = 0
-    readonly_fields = ('created_at',)
+    def colored_status(self, obj):
+        colors = {
+            'pending': '#f59e0b',
+            'confirmed': '#3b82f6',
+            'processing': '#6366f1',
+            'shipped': '#0ea5e9',
+            'delivered': '#10b981',
+            'cancelled': '#ef4444',
+            'refunded': '#8b5cf6',
+        }
+        color = colors.get(obj.status, '#000')
+        return format_html('<span style="color: {}; font-weight: bold;">{}</span>', color, obj.get_status_display())
+    colored_status.short_description = 'Status'
 
 
-@admin.register(Wishlist)
-class WishlistAdmin(admin.ModelAdmin):
-    list_display = ('user', 'created_at')
-    search_fields = ('user__username',)
-    inlines = [WishlistItemInline]
+# ─── COUPON ────────────────────────────────────────────────────────────────────
 
-
-# ─── BANNER & FLASH SALE ───────────────────────────────────────────────────────
-
-@admin.register(Banner)
-class BannerAdmin(admin.ModelAdmin):
-    list_display = ('title', 'is_active', 'order', 'created_at')
-    list_editable = ('is_active', 'order')
-
-
-@admin.register(FlashSale)
-class FlashSaleAdmin(admin.ModelAdmin):
-    list_display = ('title', 'discount_percentage', 'start_time', 'end_time', 'is_active')
-    list_filter = ('is_active',)
-    filter_horizontal = ('products',)
-    prepopulated_fields = {'slug': ('title',)}
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ('code', 'discount_type', 'discount_value', 'used_count',
+                    'usage_limit', 'valid_from', 'valid_until', 'is_active')
+    list_filter = ('discount_type', 'is_active')
+    search_fields = ('code',)
+    list_editable = ('is_active',)
+    readonly_fields = ('used_count', 'created_at')
+    prepopulated_fields = {'slug': ('code',)}
