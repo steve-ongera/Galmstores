@@ -8,6 +8,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ username: '', email: '', first_name: '', last_name: '', password: '', password2: '' })
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({})
+  const [showPasswords, setShowPasswords] = useState({ password: false, password2: false })
   const { register } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
@@ -27,12 +28,8 @@ export default function RegisterPage() {
       navigate('/')
     } catch (err) {
       console.error('Registration error:', err)
-
-      // err.data is the Django error object from your api.js throw { status, data }
       if (err?.data && typeof err.data === 'object') {
         setFieldErrors(err.data)
-
-        // Also show a toast with the first error for visibility
         const firstField = Object.keys(err.data)[0]
         const firstMsg = Array.isArray(err.data[firstField])
           ? err.data[firstField][0]
@@ -55,11 +52,25 @@ export default function RegisterPage() {
     ['password2', 'Confirm Password', 'password', 'bi-lock-fill'],
   ]
 
+  const isPasswordField = (key) => key === 'password' || key === 'password2'
+
   return (
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-card__header">
-          <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>✨</div>
+          <img
+            src="/logo.jpg"
+            alt="GlamStore"
+            style={{
+              display: 'block',
+              margin: '0 auto 12px',
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.12)'
+            }}
+          />
           <h2>Join GlamStore</h2>
           <p style={{ fontSize: '0.9rem', marginTop: 4 }}>Create your account and start shopping</p>
         </div>
@@ -70,23 +81,43 @@ export default function RegisterPage() {
               <div
                 key={key}
                 className="form-group"
-                style={key === 'email' ? { gridColumn: '1 / -1' } : {}}
+                style={key === 'email' || isPasswordField(key) ? { gridColumn: '1 / -1' } : {}}
               >
                 <label className="form-label">
                   <i className={`bi ${icon}`}></i> {label}
                 </label>
-                <input
-                  type={type}
-                  className={`form-control ${fieldErrors[key] ? 'is-invalid' : ''}`}
-                  value={form[key]}
-                  onChange={e => {
-                    setForm(f => ({ ...f, [key]: e.target.value }))
-                    // Clear error for this field on change
-                    if (fieldErrors[key]) setFieldErrors(f => ({ ...f, [key]: null }))
-                  }}
-                  required
-                />
-                {/* Inline field error */}
+
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={isPasswordField(key) ? (showPasswords[key] ? 'text' : 'password') : type}
+                    className={`form-control ${fieldErrors[key] ? 'is-invalid' : ''}`}
+                    value={form[key]}
+                    onChange={e => {
+                      setForm(f => ({ ...f, [key]: e.target.value }))
+                      if (fieldErrors[key]) setFieldErrors(f => ({ ...f, [key]: null }))
+                    }}
+                    required
+                    style={isPasswordField(key) ? { paddingRight: '2.6rem' } : {}}
+                  />
+                  {isPasswordField(key) && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswords(v => ({ ...v, [key]: !v[key] }))}
+                      tabIndex={-1}
+                      aria-label={showPasswords[key] ? 'Hide password' : 'Show password'}
+                      style={{
+                        position: 'absolute', right: 10, top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none', border: 'none',
+                        cursor: 'pointer', color: 'var(--clr-muted)',
+                        padding: 0, lineHeight: 1, fontSize: '1.1rem'
+                      }}
+                    >
+                      <i className={`bi ${showPasswords[key] ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                    </button>
+                  )}
+                </div>
+
                 {fieldErrors[key] && (
                   <div style={{ color: 'var(--clr-rose)', fontSize: '0.78rem', marginTop: 4 }}>
                     <i className="bi bi-exclamation-circle"></i>{' '}
@@ -97,7 +128,6 @@ export default function RegisterPage() {
             ))}
           </div>
 
-          {/* Non-field errors (e.g. from Django's non_field_errors) */}
           {fieldErrors.non_field_errors && (
             <div style={{
               color: 'var(--clr-rose)', fontSize: '0.82rem',
