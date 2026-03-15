@@ -44,7 +44,6 @@ export default function Layout() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Close user dropdown on outside click
   useEffect(() => {
     const handleClick = (e) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(e.target)) {
@@ -55,7 +54,6 @@ export default function Layout() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // Fetch categories from API
   useEffect(() => {
     axios.get('/api/categories/')
       .then(res => {
@@ -69,7 +67,6 @@ export default function Layout() {
         })))
       })
       .catch(() => {
-        // Fallback to hardcoded if API fails
         setCategories([
           { label: 'Skin Care', slug: 'skincare', icon: 'bi-droplet-fill', sub: CATEGORY_SUBS.skincare },
           { label: 'Human Hair', slug: 'hair', icon: 'bi-scissors', sub: CATEGORY_SUBS.hair },
@@ -126,15 +123,23 @@ export default function Layout() {
         <div className="container">
           <div className="header__inner">
 
-            {/* Logo */}
+            {/* Logo — image + text wordmark */}
             <Link to="/" className="header__logo">
-              <div className="header__logo-mark">
-                <i className="bi bi-stars"></i>
-              </div>
+              <img
+                src="/logo.jpg"
+                alt="GlamStore"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  flexShrink: 0,
+                }}
+              />
               <div className="header__logo-text">Glam<span>Store</span></div>
             </Link>
 
-            {/* Desktop Nav — single scrollable row */}
+            {/* Desktop Nav */}
             <nav className="header__nav">
               <ul className="header__nav-list">
                 {categories.map(cat => (
@@ -155,7 +160,7 @@ export default function Layout() {
                     {activeMenu === cat.slug && cat.sub.length > 0 && (
                       <div
                         className="dropdown"
-                        style={{ minWidth: 200 }}
+                        style={{ minWidth: 200, zIndex: 9999, position: 'absolute' }}
                         onMouseEnter={() => handleMenuEnter(cat.slug)}
                         onMouseLeave={handleMenuLeave}
                       >
@@ -203,7 +208,6 @@ export default function Layout() {
 
             {/* Actions */}
             <div className="header__actions">
-              {/* Mobile search toggle */}
               <button
                 className="header__action-btn header__action-btn--mobile-search"
                 onClick={() => setSearchOpen(!searchOpen)}
@@ -212,7 +216,6 @@ export default function Layout() {
                 <i className="bi bi-search"></i>
               </button>
 
-              {/* Wishlist */}
               <Link to="/wishlist" className="header__action-btn" title="Wishlist">
                 <i className="bi bi-heart"></i>
                 {wishlist?.total_items > 0 && (
@@ -220,7 +223,6 @@ export default function Layout() {
                 )}
               </Link>
 
-              {/* Cart */}
               <Link to="/cart" className="header__action-btn" title="Cart">
                 <i className="bi bi-bag"></i>
                 {cart?.item_count > 0 && (
@@ -229,7 +231,7 @@ export default function Layout() {
               </Link>
 
               {/* User dropdown */}
-              <div style={{ position: 'relative' }} ref={userDropdownRef}>
+              <div style={{ position: 'relative', zIndex: 9999 }} ref={userDropdownRef}>
                 <button
                   className="header__action-btn"
                   onClick={() => setUserDropdown(!userDropdown)}
@@ -238,7 +240,10 @@ export default function Layout() {
                   <i className={`bi ${user ? 'bi-person-check-fill' : 'bi-person'}`}></i>
                 </button>
                 {userDropdown && (
-                  <div className="dropdown header__user-dropdown">
+                  <div
+                    className="dropdown header__user-dropdown"
+                    style={{ position: 'absolute', zIndex: 9999, right: 0, top: '100%' }}
+                  >
                     {user ? (
                       <>
                         <div className="dropdown__user-info">
@@ -282,7 +287,6 @@ export default function Layout() {
                 )}
               </div>
 
-              {/* Mobile menu toggle */}
               <button className="header__mobile-btn" onClick={() => setMobileOpen(true)} aria-label="Open menu">
                 <i className="bi bi-list"></i>
               </button>
@@ -290,7 +294,7 @@ export default function Layout() {
           </div>
         </div>
 
-        {/* Mobile search bar (slides down) */}
+        {/* Mobile search bar */}
         {searchOpen && (
           <div className="header__mobile-search">
             <div className="container">
@@ -317,10 +321,13 @@ export default function Layout() {
       {mobileOpen && (
         <div className="drawer-overlay" onClick={() => setMobileOpen(false)}>
           <div className="drawer" onClick={e => e.stopPropagation()}>
-            {/* Drawer Header */}
             <div className="drawer__header">
               <Link to="/" className="header__logo" onClick={() => setMobileOpen(false)}>
-                <div className="header__logo-mark"><i className="bi bi-stars"></i></div>
+                <img
+                  src="/logo.jpg"
+                  alt="GlamStore"
+                  style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                />
                 <div className="header__logo-text">Glam<span style={{ color: 'var(--clr-rose)' }}>Store</span></div>
               </Link>
               <button className="drawer__close" onClick={() => setMobileOpen(false)}>
@@ -328,7 +335,6 @@ export default function Layout() {
               </button>
             </div>
 
-            {/* User info in drawer */}
             {user && (
               <div className="drawer__user">
                 <div className="dropdown__avatar">{(user.first_name?.[0] || user.username?.[0] || 'U').toUpperCase()}</div>
@@ -339,7 +345,6 @@ export default function Layout() {
               </div>
             )}
 
-            {/* Drawer Search */}
             <form onSubmit={handleSearch} className="drawer__search">
               <input
                 className="form-control"
@@ -349,7 +354,6 @@ export default function Layout() {
               />
             </form>
 
-            {/* Nav Categories */}
             <p className="drawer__section-label">Categories</p>
             {categories.map(cat => (
               <Link
@@ -358,9 +362,7 @@ export default function Layout() {
                 className="drawer__nav-item"
                 onClick={() => setMobileOpen(false)}
               >
-                <span className="drawer__nav-icon">
-                  <i className={`bi ${cat.icon}`}></i>
-                </span>
+                <span className="drawer__nav-icon"><i className={`bi ${cat.icon}`}></i></span>
                 <span>{cat.label}</span>
                 <i className="bi bi-chevron-right drawer__nav-arrow"></i>
               </Link>
@@ -370,14 +372,11 @@ export default function Layout() {
               className="drawer__nav-item drawer__nav-item--sale"
               onClick={() => setMobileOpen(false)}
             >
-              <span className="drawer__nav-icon">
-                <i className="bi bi-lightning-charge-fill"></i>
-              </span>
+              <span className="drawer__nav-icon"><i className="bi bi-lightning-charge-fill"></i></span>
               <span>Flash Sale</span>
               <i className="bi bi-chevron-right drawer__nav-arrow"></i>
             </Link>
 
-            {/* Drawer Footer Links */}
             <div className="drawer__divider" />
             <p className="drawer__section-label">Account</p>
             {user ? (
@@ -419,7 +418,6 @@ export default function Layout() {
         </div>
       )}
 
-      {/* Main Content */}
       <main style={{ minHeight: '60vh' }}>
         <Outlet />
       </main>
@@ -438,7 +436,11 @@ function Footer({ categories }) {
         <div className="footer__grid">
           <div>
             <div className="header__logo mb-md">
-              <div className="header__logo-mark"><i className="bi bi-stars"></i></div>
+              <img
+                src="/logo.jpg"
+                alt="GlamStore"
+                style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+              />
               <div className="header__logo-text" style={{ color: 'white' }}>Glam<span>Store</span></div>
             </div>
             <p className="footer__brand-text">
