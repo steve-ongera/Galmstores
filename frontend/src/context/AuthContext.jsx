@@ -31,9 +31,8 @@ export function AuthProvider({ children }) {
   const register = async (formData) => {
     const data = await authAPI.register(formData)
     setTokens(data.access, data.refresh)
-    const profile = await authAPI.profile()
-    setUser(profile)
-    return profile
+    setUser(data.user)   // backend already returns this — no extra fetch needed
+    return data.user
   }
 
   const logout = async () => {
